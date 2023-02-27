@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"
+        integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            margin: 0px;
+        }
+
+        .form {
+            border: 1px solid black;
+            border-radius: 7px;
+            padding: 20px;
+        }
+
+        h3 {
+            color: white;
+        }
+
+        .custom-control-label {
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="mb-3 form border border-info rounded bg-info bg-gradient">
+        <h3 class="mb-3">Login</h3>
+        <input type="text" placeholder="Username" id="userInp" class="form-control mb-3">
+        <input type="text" placeholder="Password" id="passInp" class="form-control mb-3">
+        <div class="custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input mb-3" id="customSwitch1">
+            <label class="custom-control-label mb-3" for="customSwitch1">Keep me logged in</label>
+        </div>
+        <button type="text" id="sub_btn" class=" btn btn-danger mb-3 w-100">Login</button>
+        <a href="register.html" class="badge badge-warning py-1 w-100">Don't have an account?</a>
+    </div>
+
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAUzf-YsG251Uuu1UkM0zXnGk1phwCAtXU",
+            authDomain: "fir-frontend-c7f17.firebaseapp.com",
+            projectId: "fir-frontend-c7f17",
+            storageBucket: "fir-frontend-c7f17.appspot.com",
+            messagingSenderId: "535828322647",
+            appId: "1:535828322647:web:afbabcfa95994e5dd18612"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        import { getDatabase, ref, set, child, get, update, remove } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+        const db = getDatabase();
+        const username = document.getElementById('userInp');
+        const pass = document.getElementById('passInp');
+        const submit = document.getElementById('sub_btn');
+
+        function AuthenticateUser() {
+            const dbref = ref(db);
+            get(child(dbref, "UsersList/" + username.value)).then((snapshot) => {
+
+                if (snapshot.exists()) {
+                    let dbpass = decPass(snapshot.val().password);
+                    if (dbpass == pass.value) {
+                        login();
+                    }
+                    else {
+                        alert("User does not exist.");
+                    }
+                }
+
+                else {
+                    alert("Username or Password is invalid.");
+                }
+            })
+        }
+
+        function decPass(dbpass) {
+            var pass12 = CryptoJS.AES.decrypt(dbpass, pass.value);
+            return pass12.toString(CryptoJS.enc.Utf8);
+        }
+        function login(user) {
+            let keepLoggedIn = document.getElementById('customSwitch1').checked;
+            if (!keepLoggedIn) {
+                sessionStorage.setItem('user', JSON.stringify(user));
+                window.location = "home.html";
+            }
+            else {
+                localStorage.setItem('keepLoggedIn', "yes");
+                localStorage.setItem('user', JSON.stringify(user));
+                window.location = "home.html";
+            }
+        }
+
+        submit.addEventListener('click', AuthenticateUser);
+    </script>
+</body>
+
+</html>

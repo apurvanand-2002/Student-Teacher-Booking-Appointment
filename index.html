@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase realtime database</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <style>
+        label {
+            display: block;
+            width: 80px
+        }
+
+        input,
+        select {
+            width: 120px;
+        }
+
+        a {
+            text-decoration: none;
+            color: white;
+        }
+
+        a:hover {
+            text-decoration: none;
+            color: white;
+        }
+
+        body {
+            margin: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div></div>
+    <label>Name</label><input type="text" id="Namebox">
+    <label>RollNo</label><input type="text" id="Rollbox">
+    <label>Section</label><input type="text" id="Secbox">
+    <select id="Genbox">
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+    </select>
+
+    <hr>
+    <button id="Insbtn" class="btn btn-primary">INSERT</button>
+    <button id="Selbtn" class="btn btn-success">SELECT</button>
+    <button id="Updbtn" class="btn btn-warning">UPDATE</button>
+    <button id="Delbtn" class="btn btn-danger">DELETE</button>
+
+    <!-- <button class="btn btn-info"><a href="DataInATable.html">Get Data In A Table</a></button> -->
+
+    <br>
+    <!-- <button class="btn btn-info"><a href="index.html">Go back to change data.</a></button> -->
+    <div class="container mt-3">
+        <table class="table table-primary">
+            <thead>
+                <th>Sno</th>
+                <th>Name</th>
+                <th>RollNo</th>
+                <th>Section</th>
+                <th>Gender</th>
+                <!-- <th>Control Center</th> -->
+            </thead>
+            <tbody id="tbody1"></tbody>
+        </table>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+
+    <!-- Button trigger modal -->
+    <!-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter" onClick="FillTboxes(null)">Add new record</button> -->
+
+    <!-- Modal starts-->
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog"
+        aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Control Panel</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <label class="labs">Name: </label>
+                    <input type="text" id="NameMod"><br>
+                    <label class="labs">RollNo: </label>
+                    <input type="text" id="RollMod"><br>
+                    <label class="labs">Section: </label>
+                    <input type="text" id="SecMod"><br>
+                    <label class="labs">Gender: </label>
+                    <input type="text" id="GenMod"><br>
+                </div>
+                <div class="modal-footer">
+                    <button id="AddModBtn" type="button" class="btn btn-primary" onclick="AddStd()">Add New
+                        Record</button>
+                    <button id="UpdModBtn" type="button" class="btn btn-success" onclick="UpdStd()">Update
+                        Record</button>
+                    <button id="DelModBtn" type="button" class="btn btn-danger" onclick="DelStd()">Delete
+                        Record</button>
+                    <!-- <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button> -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAUGmwXEXFrVwhNISnspeDLosklXLxXuUE",
+            authDomain: "editable-table-476da.firebaseapp.com",
+            projectId: "editable-table-476da",
+            storageBucket: "editable-table-476da.appspot.com",
+            messagingSenderId: "254580215406",
+            appId: "1:254580215406:web:e0595cf000721c023de07f"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        import { getDatabase, ref, get, set, child, update, remove } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+        const db = getDatabase();
+        var namebox = document.getElementById("Namebox");
+        var rollbox = document.getElementById("Rollbox");
+        var secbox = document.getElementById("Secbox");
+        var genbox = document.getElementById("Genbox");
+
+        var insBtn = document.getElementById("Insbtn");
+        var selBtn = document.getElementById("Selbtn");
+        var updBtn = document.getElementById("Updbtn");
+        var delBtn = document.getElementById("Delbtn");
+
+        function InsertData() {
+            set(ref(db, "TheStudents/" + rollbox.value), {
+                NameOfstd: namebox.value,
+                Rollno: rollbox.value,
+                Section: secbox.value,
+                Gender: genbox.value
+            })
+                .then(() => {
+                    alert("data stored successfully");
+                })
+                .catch((error) => {
+                    alert("unsuccessful,error" + error);
+                });
+        }
+        insBtn.addEventListener('click', InsertData);
+
+        function SelectData() {
+            const dbref = ref(db);
+            get(child(dbref, "TheStudents/" + rollbox.value)).then((snapshot) => {
+                if (snapshot.exists()) {
+                    namebox.value = snapshot.val().NameOfstd;
+                    secbox.value = snapshot.val().Section;
+                    genbox.value = snapshot.val().Gender;
+                }
+                else {
+                    alert("No data found");
+                }
+            })
+                .catch((error) => {
+                    alert("unsuccessful,error" + error);
+                });
+        }
+        selBtn.addEventListener('click', SelectData);
+
+        function UpdateData() {
+            update(ref(db, "TheStudents/" + rollbox.value), {
+                NameOfstd: namebox.value,
+                Section: secbox.value,
+                Gender: genbox.value
+            })
+                .then(() => {
+                    alert("data updated successfully");
+                })
+                .catch((error) => {
+                    alert("unsuccessful,error" + error);
+                });
+        }
+        updBtn.addEventListener('click', UpdateData);
+
+        function DeleteData() {
+            remove(ref(db, "TheStudents/" + rollbox.value))
+                .then(() => {
+                    alert("data removed successfully");
+                })
+                .catch((error) => {
+                    alert("unsuccessful,error" + error);
+                });
+        }
+        delBtn.addEventListener('click', DeleteData);
+
+        var stdNo = 0;
+        var stdList = [];
+
+        var tbody = document.getElementById('tbody1');
+
+
+        var ModName = document.getElementById('NameMod');
+        var ModRoll = document.getElementById('RollMod');
+        var ModSec = document.getElementById('SecMod');
+        var ModGen = document.getElementById('GenMod');
+
+        var BTNmodAdd = document.getElementById('AddModBtn');
+        var BTNmodUpd = document.getElementById('UpdModBtn');
+        var BTNmodDel = document.getElementById('DelModBtn');
+
+        window.AddStd = () => {
+            set(ref(db, "TheStudent/" + ModRoll.value), {
+                NameOfstd: ModName.value,
+                RollNo: ModRoll.value,
+                Section: ModSec.value,
+                Gender: ModGen.value
+            }),
+                (error) => {
+                    if (error) {
+                        alert("record was not added, there was some problem.");
+                    }
+                    else {
+                        alert("record was added.");
+                        GetAllDataAtOnce();
+                        $("#exampleModalCenter").modal('hide');
+                    }
+                }
+        }
+
+        window.UpdStd = () => {
+            db.ref("TheStudent/" + ModRoll.value).update({
+                NameOfstd: ModName.value,
+                Section: ModSec.value,
+                Gender: ModGen.value
+            }),
+                (error) => {
+                    if (error) {
+                        alert("record was not updated, there was some problem.");
+                    }
+                    else {
+                        alert("record was updated.");
+                        GetAllDataAtOnce();
+                        $("#exampleModalCenter").modal('hide');
+                    }
+                }
+        }
+
+        window.DelStd = () => {
+            db.ref("TheStudent/" + ModRoll.value).remove()
+                .then(
+                    function () {
+                        alert("Record is deleted.");
+                        GetAllDataAtOnce();
+                        $("#exampleModalCenter").modal('hide');
+                    }
+                )
+        }
+        function AddItemToTable(name, roll, sec, gen) {
+            const trow = document.createElement("tr");
+            const td1 = document.createElement("td");
+            const td2 = document.createElement("td");
+            const td3 = document.createElement("td");
+            const td4 = document.createElement("td");
+            const td5 = document.createElement("td");
+
+            stdList.push([name, roll, gen, sec]);
+
+            td1.innerHTML = ++stdNo;
+            td2.innerHTML = name;
+            td3.innerHTML = roll;
+            td4.innerHTML = sec;
+            td5.innerHTML = gen;
+
+            trow.appendChild(td1);
+            trow.appendChild(td2);
+            trow.appendChild(td3);
+            trow.appendChild(td4);
+            trow.appendChild(td5);
+
+            var ControlDiv = document.createElement("div");
+            // ControlDiv.innerHTML = '<button type="button" class="btn btn-primary my-2" data-toggle="modal" data-target="#exampleModalCenter" onclick="FillTboxes(null)">Add New Record</button>';
+            // ControlDiv.innerHTML += ' <button type="button" class="btn btn-primary my-2 ml" data-toggle="modal" data-target="#exampleModalCenter" onclick="FillTboxes(' + stdNo + ') ">Edit Record</button>';
+
+            trow.appendChild(ControlDiv);
+
+            tbody.appendChild(trow);
+        }
+
+        // --------------------------------
+        window.FillTboxes = (index) => {
+            if (index == null) {
+                ModName.value = "";
+                ModRoll.value = "";
+                ModSec.value = "";
+                ModGen.value = "";
+                BTNmodAdd.style.display = 'inline-block';
+                BTNmodUpd.style.display = 'none';
+                BTNmodDel.style.display = 'none';
+            }
+            else {
+                --index;
+                ModName.value = stdList[index][0];
+                ModRoll.value = stdList[index][1];
+                ModSec.value = stdList[index][2];
+                ModGen.value = stdList[index][3];
+                ModRoll.disabled = true;
+                BTNmodAdd.style.display = 'none';
+                BTNmodUpd.style.display = 'inline-block';
+                BTNmodDel.style.display = 'inline-block';
+            }
+        }
+
+
+
+        function AddAllItemsToTheTable(TheStudent) {
+            tbody.innerHTML = "";
+            stdNo = 0;
+
+            TheStudent.forEach(element => {
+                AddItemToTable(element.NameOfstd, element.Rollno, element.Section, element.Gender);
+            });
+        }
+
+
+        function GetAllDataAtOnce() {
+            const dbref = ref(db);
+            get(child(dbref, "TheStudents"))
+                .then((snapshot) => {
+                    var students = [];
+                    snapshot.forEach(childSnapshot => {
+                        students.push(childSnapshot.val());
+                    });
+                    AddAllItemsToTheTable(students);
+                })
+        }
+        window.onload = GetAllDataAtOnce();
+    </script>
+</body>
+
+</html>

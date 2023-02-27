@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Page</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"
+        integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            margin: 0px;
+        }
+
+        .form {
+            border: 1px solid black;
+            border-radius: 7px;
+            padding: 20px;
+        }
+
+        h3 {
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="mb-3 form border border-info rounded bg-info bg-gradient">
+        <h3 class="mb-3">Registration</h3>
+        <input type="text" placeholder="Full Name" id="nameInp" class="form-control mb-3">
+        <input type="text" placeholder="Email" id="emailInp" class="form-control mb-3">
+        <input type="text" placeholder="Username" id="userInp" class="form-control mb-3">
+        <input type="password" placeholder="Password" id="passInp" class="form-control mb-3">
+        <button type="text" id="sub_btn" class=" btn btn-danger mb-3 w-100">Register</button>
+        <a href="login.html" class="badge badge-warning py-1 w-100">Already have an account?</a>
+    </div>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAUzf-YsG251Uuu1UkM0zXnGk1phwCAtXU",
+            authDomain: "fir-frontend-c7f17.firebaseapp.com",
+            projectId: "fir-frontend-c7f17",
+            storageBucket: "fir-frontend-c7f17.appspot.com",
+            messagingSenderId: "535828322647",
+            appId: "1:535828322647:web:afbabcfa95994e5dd18612"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        import { getDatabase, ref, set, child, get, update, remove } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+        const db = getDatabase();
+        const name = document.getElementById('nameInp');
+        const email = document.getElementById('emailInp');
+        const username = document.getElementById('userInp');
+        const pass = document.getElementById('passInp');
+        const submit = document.getElementById('sub_btn');
+
+        function isEmptyOrSpaces(str) {
+            return str === null || str.match(/^ *$/) !== null;
+        }
+
+        function validation() { //regular expressions
+            let nameregex = /^[a-zA-Z\s]+$/;
+            let emailregex = /^[a-zA-z0-9]+@(gmail|yahoo|outlook)\.com$/;
+            let userregex = /^[a-zA-Z0-9]{5,}$/;
+
+            if (isEmptyOrSpaces(name.value) || isEmptyOrSpaces(email.value) || isEmptyOrSpaces(username.value) || isEmptyOrSpaces(pass.value)) {
+                alert("You can not leave any field empty.")
+                return false;
+            }
+            if (!nameregex.test(name.value)) {
+                alert("The name should only contain alphabets.");
+                return false;
+            }
+            if (!emailregex.test(email.value)) {
+                alert("Enter a valid email.");
+                return false;
+            }
+            if (!userregex.test(username.value)) {
+                alert("Username can only be alphanumeric.\nUsername must be at least 5 characters.\nUsername can not contain spaces.");
+                return false;
+            }
+            return true;
+        }
+        function RegisterUser() {
+            if (!validation()) {
+                return;
+            };
+            const dbref = ref(db);
+
+            get(child(dbref, "UsersList/" + username.value)).then((snapshot) => {
+                if (snapshot.exists()) {
+                    alert("Account already exists.");
+                }
+                else {
+                    set(ref(db, "UsersList/" + username.value), {
+                        fullname: name.value,
+                        email: email.value,
+                        username: username.value,
+                        password: encPass()
+                    })
+                        .then(() => {
+                            alert("User added successfully.");
+                        })
+                        .catch((error) => {
+                            alert("error" + error);
+                        })
+                }
+            })
+        }
+        submit.addEventListener('click', RegisterUser);
+
+        function encPass() {
+            var pass12 = CryptoJS.AES.encrypt(pass.value, pass.value);
+            return pass12.toString();
+        }
+    </script>
+</body>
+
+</html>
